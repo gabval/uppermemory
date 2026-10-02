@@ -1,5 +1,5 @@
-import { EstadoProceso } from "./EstadoProceso"
 import { IEstadoProceso } from "./IEstadoProceso";
+import { EstadoNuevo } from "./EstadoNuevo";
 
 export class Proceso {
 
@@ -11,18 +11,22 @@ export class Proceso {
     private quantumConsumido: number;
     private tiempoBloqueoRestante: number;
 
+    private tickDisparoIo: number | null = null;
+    private duracionIo: number = 0;
+
     private estadoActual: IEstadoProceso;
 
-    public constructor(pid: number, memoriaRequerida: number, tiempoCPUTotal: number) {
+    public constructor(pid: number, memoriaRequerida: number, tiempoCpuTotal: number) {
 
         this.pid = pid;
         this.memoriaRequerida = memoriaRequerida;
-        this.tiempoCPUTotal = tiempoCPUTotal;
-        this.cpuRestante = tiempoCPUTotal;
+        this.tiempoCpuTotal = tiempoCpuTotal;
+        this.cpuRestante = tiempoCpuTotal;
         this.quantumConsumido = 0;
         this.tiempoBloqueoRestante = 0;
 
-        this.estadoActual = new Estado;
+        this.estadoActual = new EstadoNuevo();
+    }
 
     public getPid(): number {
         return this.pid;
@@ -88,7 +92,4 @@ export class Proceso {
     public reducirTemporizadorBloqueo(): void {
         this.tiempoBloqueoRestante--;
     }
-}
-
-
 }
