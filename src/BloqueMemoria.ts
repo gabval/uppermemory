@@ -44,7 +44,7 @@ export class BloqueMemoria {
         const nuevaDireccion = this.direccionInicio + tamanoRequerido;
 
         // Sobra espacio: achicamos este bloque al tamaño justo
-        this.tamano = tamanoRequerido;
+        this.tamanio = tamanoRequerido;
 
         // Devolvemos el "vuelto" (el nuevo bloque libre que sobró)
         return new BloqueMemoria(nuevaDireccion, tamanoSobrante);
