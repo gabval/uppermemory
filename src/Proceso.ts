@@ -24,7 +24,7 @@ export class Proceso {
 
         this.estadoActual = new Estado;
 
-        public getPid(): number {
+    public getPid(): number {
         return this.pid;
     }
 
@@ -43,7 +43,52 @@ export class Proceso {
     public getTiempoBloqueoRestante(): number {
         return this.tiempoBloqueoRestante;
     }
+    // y le pregunta al estado como se llama
+    public getNombreEstado(): string {
+        return this.estadoActual.getNombre();
+    }
+    // CONFIGURACIÓN DE E/S
+    public configurarIo(tickDisparo: number, duracion: number): void {
+        this.tickDisparoIo = tickDisparo;
+        this.duracionIo = duracion;
+    }
+    public getTickDisparoIo(): number | null { return this.tickDisparoIo; }
 
+    public iniciarBloqueo(): void {
+        this.tiempoBloqueoRestante = this.duracionIo;
+    }
 
+    public reiniciarQuantum(): void {
+        this.quantumConsumido = 0;
+    }
+
+    //PATRÓN STATE 
+
+    public consumirCpu(): void {
+        this.estadoActual.consumirCpu(this);
+    }
+
+    public descontarBloqueo(): void {
+        this.estadoActual.descontarBloqueo(this);
+    }
+
+    public cambiarEstado(nuevoEstado: IEstadoProceso): void {
+        this.estadoActual.cambiarEstado(this, nuevoEstado);
+    }
+    // --- MUTADORES INTERNOS (los llama el Estado) ---
+    public setEstado(nuevoEstado: IEstadoProceso): void {
+        this.estadoActual = nuevoEstado;
+    }
+
+    public reducirContadoresCpu(): void {
+        this.cpuRestante--;
+        this.quantumConsumido++;
+    }
+
+    public reducirTemporizadorBloqueo(): void {
+        this.tiempoBloqueoRestante--;
+    }
 }
+
+
 }
