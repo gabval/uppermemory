@@ -3,6 +3,7 @@ import { PlanificadorRoundRobin } from './PlanificadorRoundRobin';
 import { IPoliticaAsignacion } from './IPoliticaAsignacion';
 import { Proceso } from './Proceso';
 import { EstadoEsperandoMemoria } from './EstadoEsperandoMemoria';
+import { EstadoListo } from './EstadoListo';
 
 export class Simulador {
     private memoriaTotal: number;
@@ -41,7 +42,6 @@ export class Simulador {
         this.procesosTerminados = [];
     }
 
-    // RF02: Registrar procesos con validación de PID único y límite de memoria
     public registrarProceso(proceso: Proceso): void {
         const pidDuplicado = this.procesosRegistrados.some(p => p.getPid() === proceso.getPid());
         const excedeMemoria = proceso.getMemoriaRequerida() > this.memoriaTotal;
@@ -53,5 +53,30 @@ export class Simulador {
         this.procesosRegistrados.push(proceso);
         proceso.cambiarEstado(new EstadoEsperandoMemoria());
         this.procesosEsperandoMemoria.push(proceso);
+    }
+
+    private faseAdmision(): void {
+        this.procesosEsperandoMemoria = this.procesosEsperandoMemoria.filter(proceso => {
+            const asignado = this.gestorMemoria.asignar(proceso);
+            if (asignado) {
+                proceso.cambiarEstado(new EstadoListo());
+                this.planificador.encolarListo(proceso);
+                return false; // Sale de la cola de espera de memoria
+            }
+            return true; // Se mantiene esperando memoria
+        });
+    }
+
+    private faseActualizarBloqueados(): void {
+        this.procesosBloqueados = this.procesosBloqueados.filter(proceso => {
+            proceso.descontarBloqueo();
+            const desbloqueado = proceso.getTiempoBloqueoRestante() <= 0;
+            if (desbloqueado) {
+                proceso.cambiarEstado(new EstadoListo());
+                this.planificador.encolarListo(proceso);
+                return false; // Sale de la lista de bloqueados
+            }
+            return true; // Sigue bloqueado
+        });
     }
 }
