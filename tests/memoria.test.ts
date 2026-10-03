@@ -188,5 +188,25 @@ describe('Módulo de Gestión de Memoria (RF04 y RF05)', () => {
       expect(mapa[0].tamano).toBe(100);
       expect(mapa[0].libre).toBe(true);
     });
+
+    it('11. obtenerMapaMemoria debe devolver copias planas protegiendo el encapsulamiento (RF10)', () => {
+      const p1 = new Proceso(1, 50, 5);
+      gestor.asignar(p1);
+
+      const mapa = gestor.obtenerMapaMemoria();
+      expect(mapa.length).toBe(2);
+      expect(mapa[0]).toEqual({
+        inicio: 0,
+        tamano: 50,
+        libre: false,
+        pidAsignado: 1
+      });
+      expect(mapa[1]).toEqual({
+        inicio: 50,
+        tamano: 50,
+        libre: true,
+        pidAsignado: null
+      });
+    });
   });
 });
