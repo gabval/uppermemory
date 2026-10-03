@@ -1,4 +1,4 @@
-import { Proceso } from "./IProceso";
+import { Proceso } from "./Proceso";
 
 export class PlanificadorRoundRobin {
     private quantumMaximo: number;
@@ -26,7 +26,7 @@ export class PlanificadorRoundRobin {
         // Evaluamos si la CPU está vacía y hay fila
         const debeDespachar = (this.procesoEnCpu === null && this.colaListos.length > 0);
 
-        // Asignación sin IF: Si debe despachar, saca el primero de la cola y lo pone en CPU
+        // Si debe despachar, saca el primero de la cola y lo pone en CPU
         debeDespachar && (this.procesoEnCpu = this.colaListos.shift() || null);
 
         // Si hay un proceso en CPU (el ? evita errores si es null), le reiniciamos el quantum
@@ -36,8 +36,23 @@ export class PlanificadorRoundRobin {
     public liberarCpu(): void {
         this.procesoEnCpu = null;
     }
+
+    public evaluarDesalojo(): { expulsadoPorQuantum: boolean } {
+        //obtenemos los datos actuales
+        const quantumActual = this.procesoEnCpu?.getQuantumConsumido() ?? 0;
+        const superoQuantum = quantumActual >= this.quantumMaximo;
+        const hayOtrosListos = this.colaListos.length > 0;
+
+        //Caso A: Superó el quantum y HAY otros esperando -> Reencola y libera
+        superoQuantum && hayOtrosListos && this.encolarListo(this.procesoEnCpu!);
+        superoQuantum && hayOtrosListos && this.liberarCpu();
+
+        // Caso B: Superó el quantum pero NO hay fila -> Renueva su propio quantum y sigue
+        superoQuantum && !hayOtrosListos && this.procesoEnCpu?.reiniciarQuantum();
+
+        // Retornamos true únicamente si fue desalojado para que el Simulador sepa contar el cambio de contexto
+        return { expulsadoPorQuantum: superoQuantum && hayOtrosListos };
+    }
 }
-
-
 
 
