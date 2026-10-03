@@ -43,16 +43,21 @@ export class Simulador {
     }
 
     // RF02: Registro con validaciones funcionales
-    public registrarProceso(pid: number, memoriaRequerida: number, tiempoCpuTotal: number): void {
-        const duplicado = this.procesosRegistrados.some(p => p.getPid() === pid);
+    public registrarProceso(proceso: Proceso): void;
+    public registrarProceso(pid: number, memoriaRequerida: number, tiempoCpuTotal: number): void;
+    public registrarProceso(pidOrProceso: number | Proceso, memoriaRequerida?: number, tiempoCpuTotal?: number): void {
+        const proceso = (pidOrProceso instanceof Proceso)
+            ? pidOrProceso
+            : new Proceso(pidOrProceso, memoriaRequerida!, tiempoCpuTotal!);
+
+        const duplicado = this.procesosRegistrados.some(p => p.getPid() === proceso.getPid());
         duplicado && (() => { throw new Error("PID duplicado."); })();
 
-        const excedeMemoria = memoriaRequerida > this.memoriaTotal;
+        const excedeMemoria = proceso.getMemoriaRequerida() > this.memoriaTotal;
         excedeMemoria && (() => { throw new Error("La memoria solicitada supera el total de la RAM."); })();
 
-        const nuevoProceso = new Proceso(pid, memoriaRequerida, tiempoCpuTotal);
-        this.procesosRegistrados.push(nuevoProceso);
-        this.colaEsperandoMemoria.push(nuevoProceso);
+        this.procesosRegistrados.push(proceso);
+        this.colaEsperandoMemoria.push(proceso);
     }
 
     // RF06: Avance determinista
@@ -142,5 +147,17 @@ export class Simulador {
             this.gestorMemoria.getMemoriaLibreTotal(),
             this.gestorMemoria.getMayorBloqueLibre()
         );
+    }
+
+    // --- CONSULTAS Y ESTADO (RF10) ---
+    public getTickActual(): number { return this.tickActual; }
+    public getProcesoEnCpu(): Proceso | null { return this.planificador.getProcesoEnCpu(); }
+    public getColaListos(): Proceso[] { return this.planificador.getColaListos(); }
+    public getListaBloqueados(): Proceso[] { return [...this.listaBloqueados]; }
+    public getListaTerminados(): Proceso[] { return [...this.listaTerminados]; }
+    public getColaEsperandoMemoria(): Proceso[] { return [...this.colaEsperandoMemoria]; }
+    public getProcesosRegistrados(): Proceso[] { return [...this.procesosRegistrados]; }
+    public obtenerMapaMemoria(): Array<{ inicio: number, tamano: number, libre: boolean, pidAsignado: number | null }> {
+        return this.gestorMemoria.obtenerMapaMemoria();
     }
 }
