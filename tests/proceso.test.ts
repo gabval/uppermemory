@@ -35,4 +35,31 @@ describe('Clase Proceso y Patrón State', () => {
     expect(proceso.getCpuRestante()).toBe(4);
     expect(proceso.getQuantumConsumido()).toBe(1);
   });
+
+  it('4. En estados distintos de EJECUTANDO (como NUEVO o LISTO), consumirCpu NO debe tener efecto', () => {
+    // Estando en NUEVO:
+    proceso.consumirCpu();
+    expect(proceso.getCpuRestante()).toBe(5);
+    expect(proceso.getQuantumConsumido()).toBe(0);
+
+    // Estando en LISTO:
+    proceso.cambiarEstado(new EstadoListo());
+    proceso.consumirCpu();
+    expect(proceso.getCpuRestante()).toBe(5);
+    expect(proceso.getQuantumConsumido()).toBe(0);
+  });
+
+  it('5. En estado BLOQUEADO debe descontar el temporizador de bloqueo', () => {
+    proceso.configurarIo(2, 3);
+    proceso.iniciarBloqueo();
+    proceso.cambiarEstado(new EstadoBloqueado());
+    expect(proceso.getNombreEstado()).toBe('BLOQUEADO');
+    expect(proceso.getTiempoBloqueoRestante()).toBe(3);
+
+    proceso.descontarBloqueo();
+    expect(proceso.getTiempoBloqueoRestante()).toBe(2);
+
+    proceso.descontarBloqueo();
+    expect(proceso.getTiempoBloqueoRestante()).toBe(1);
+  });
 });
