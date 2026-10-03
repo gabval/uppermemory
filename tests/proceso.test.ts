@@ -21,4 +21,18 @@ describe('Clase Proceso y Patrón State', () => {
     expect(proceso.getCpuRestante()).toBe(5);
     expect(proceso.getQuantumConsumido()).toBe(0);
   });
+
+  it('2. Debe permitir transicionar válidamente de estado (a LISTO)', () => {
+    proceso.cambiarEstado(new EstadoListo());
+    expect(proceso.getNombreEstado()).toBe('LISTO');
+  });
+
+  it('3. En estado EJECUTANDO debe consumir CPU e incrementar el quantum', () => {
+    proceso.cambiarEstado(new EstadoEjecutando());
+    expect(proceso.getNombreEstado()).toBe('EJECUTANDO');
+
+    proceso.consumirCpu();
+    expect(proceso.getCpuRestante()).toBe(4);
+    expect(proceso.getQuantumConsumido()).toBe(1);
+  });
 });
