@@ -41,4 +41,22 @@ export class Simulador {
         this.cambiosContexto = 0;
         this.ticksCpuOcupada = 0;
     }
-}
+    // RF02: Registro con validaciones funcionales
+    public registrarProceso(pid: number, memoriaRequerida: number, tiempoCpuTotal: number): void {
+        const duplicado = this.procesosRegistrados.some(p => p.getPid() === pid);
+        duplicado && (() => { throw new Error("PID duplicado."); })();
+
+        const excedeMemoria = memoriaRequerida > this.memoriaTotal;
+        excedeMemoria && (() => { throw new Error("La memoria solicitada supera el total de la RAM."); })();
+
+        const nuevoProceso = new Proceso(pid, memoriaRequerida, tiempoCpuTotal);
+        this.procesosRegistrados.push(nuevoProceso);
+        this.colaEsperandoMemoria.push(nuevoProceso);
+    }
+    // RF06: Avance determinista
+    public avanzarTick(): void {
+        this.procesarAdmision();
+        this.procesarBloqueados();
+        this.procesarCpu();
+        this.tickActual++;
+    }
