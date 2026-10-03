@@ -2,6 +2,8 @@ import { describe, it, expect } from 'vitest';
 import { BloqueMemoria } from '../src/BloqueMemoria';
 import { Proceso } from '../src/Proceso';
 import { PoliticaFirstFit } from '../src/PoliticaFirstFit';
+import { PoliticaBestFit } from '../src/PoliticaBestFit';
+import { PoliticaWorstFit } from '../src/PoliticaWorstFit';
 
 describe('Módulo de Gestión de Memoria (RF04 y RF05)', () => {
   describe('BloqueMemoria', () => {
@@ -56,6 +58,38 @@ describe('Módulo de Gestión de Memoria (RF04 y RF05)', () => {
 
       // Buscamos 40 unidades: bloque 1 (30) no alcanza, bloque 2 (100) es el primero que entra
       const seleccionado = firstFit.buscarBloque(bloques, 40);
+
+      expect(seleccionado).not.toBeNull();
+      expect(seleccionado!.getDireccionInicio()).toBe(30);
+      expect(seleccionado!.getTamanio()).toBe(100);
+    });
+
+    it('5. PoliticaBestFit: debe elegir el bloque libre más ajustado (menor desperdicio)', () => {
+      const bestFit = new PoliticaBestFit();
+      const bloques = [
+        new BloqueMemoria(0, 30),
+        new BloqueMemoria(30, 100),
+        new BloqueMemoria(130, 50)
+      ];
+
+      // Buscamos 40 unidades: entre el de 100 y el de 50, el de 50 es el mejor ajuste
+      const seleccionado = bestFit.buscarBloque(bloques, 40);
+
+      expect(seleccionado).not.toBeNull();
+      expect(seleccionado!.getDireccionInicio()).toBe(130);
+      expect(seleccionado!.getTamanio()).toBe(50);
+    });
+
+    it('6. PoliticaWorstFit: debe elegir el bloque libre más grande disponible', () => {
+      const worstFit = new PoliticaWorstFit();
+      const bloques = [
+        new BloqueMemoria(0, 30),
+        new BloqueMemoria(30, 100),
+        new BloqueMemoria(130, 50)
+      ];
+
+      // Buscamos 20 unidades: debe elegir el bloque más grande (100)
+      const seleccionado = worstFit.buscarBloque(bloques, 20);
 
       expect(seleccionado).not.toBeNull();
       expect(seleccionado!.getDireccionInicio()).toBe(30);
