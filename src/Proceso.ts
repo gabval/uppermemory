@@ -40,6 +40,10 @@ export class Proceso {
         return this.cpuRestante;
     }
 
+    public getTiempoCpuTotal(): number {
+        return this.tiempoCpuTotal;
+    }
+
     public getQuantumConsumido(): number {
         return this.quantumConsumido;
     }
