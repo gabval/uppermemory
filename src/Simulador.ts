@@ -114,8 +114,9 @@ export class Simulador {
         termino && this.listaTerminados.push(proceso!);
 
         // 2. Verificamos Bloqueo por E/S (RF08)
-        const tickIo = proceso?.getTickDisparoIo() ?? -1;
-        const tocaIo = !termino && hayProceso && (tickIo !== -1) && (tickIo === proceso!.getQuantumConsumido());
+        const cpuConsumida = hayProceso ? (proceso!.getTiempoCpuTotal() - proceso!.getCpuRestante()) : 0;
+        const tickIo = proceso?.getTickDisparoIo() ?? null;
+        const tocaIo = !termino && hayProceso && (tickIo !== null) && (cpuConsumida === tickIo);
 
         tocaIo && proceso!.iniciarBloqueo();
         tocaIo && proceso!.cambiarEstado(new EstadoBloqueado());

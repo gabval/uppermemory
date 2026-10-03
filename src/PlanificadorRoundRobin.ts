@@ -29,8 +29,8 @@ export class PlanificadorRoundRobin {
         // Si debe despachar, saca el primero de la cola y lo pone en CPU
         debeDespachar && (this.procesoEnCpu = this.colaListos.shift() || null);
 
-        // Si hay un proceso en CPU (el ? evita errores si es null), le reiniciamos el quantum
-        this.procesoEnCpu?.reiniciarQuantum();
+        // Si se despachó un proceso, le reiniciamos el quantum
+        debeDespachar && this.procesoEnCpu?.reiniciarQuantum();
     }
 
     public liberarCpu(): void {
