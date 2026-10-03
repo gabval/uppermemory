@@ -1,9 +1,10 @@
-import { describe, it, expect } from 'vitest';
+import { describe, it, expect, beforeEach } from 'vitest';
 import { BloqueMemoria } from '../src/BloqueMemoria';
 import { Proceso } from '../src/Proceso';
 import { PoliticaFirstFit } from '../src/PoliticaFirstFit';
 import { PoliticaBestFit } from '../src/PoliticaBestFit';
 import { PoliticaWorstFit } from '../src/PoliticaWorstFit';
+import { GestorMemoria } from '../src/GestorMemoria';
 
 describe('Módulo de Gestión de Memoria (RF04 y RF05)', () => {
   describe('BloqueMemoria', () => {
@@ -94,6 +95,45 @@ describe('Módulo de Gestión de Memoria (RF04 y RF05)', () => {
       expect(seleccionado).not.toBeNull();
       expect(seleccionado!.getDireccionInicio()).toBe(30);
       expect(seleccionado!.getTamanio()).toBe(100);
+    });
+
+    it('7. Si ningún bloque libre alcanza, la política debe retornar null', () => {
+      const firstFit = new PoliticaFirstFit();
+      const bloques = [
+        new BloqueMemoria(0, 30),
+        new BloqueMemoria(30, 100),
+        new BloqueMemoria(130, 50)
+      ];
+
+      const seleccionado = firstFit.buscarBloque(bloques, 200);
+      expect(seleccionado).toBeNull();
+    });
+  });
+
+  describe('GestorMemoria y Particionamiento (RF04 y RF05)', () => {
+    let gestor: GestorMemoria;
+
+    beforeEach(() => {
+      // Memoria total de 100 con First Fit
+      gestor = new GestorMemoria(100, new PoliticaFirstFit());
+    });
+
+    it('8. Debe asignar memoria particionando bloques y rechazando si excede el espacio disponible', () => {
+      const p1 = new Proceso(1, 40, 5);
+      const asignadoP1 = gestor.asignar(p1);
+      expect(asignadoP1).toBe(true);
+      expect(gestor.getMemoriaLibreTotal()).toBe(60);
+
+      const p2 = new Proceso(2, 50, 5);
+      const asignadoP2 = gestor.asignar(p2);
+      expect(asignadoP2).toBe(true);
+      expect(gestor.getMemoriaLibreTotal()).toBe(10);
+
+      // Intentamos asignar un proceso de 20 cuando solo quedan 10 libres
+      const p3 = new Proceso(3, 20, 5);
+      const asignadoP3 = gestor.asignar(p3);
+      expect(asignadoP3).toBe(false);
+      expect(gestor.getMemoriaLibreTotal()).toBe(10);
     });
   });
 });
