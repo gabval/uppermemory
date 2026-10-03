@@ -135,5 +135,58 @@ describe('Módulo de Gestión de Memoria (RF04 y RF05)', () => {
       expect(asignadoP3).toBe(false);
       expect(gestor.getMemoriaLibreTotal()).toBe(10);
     });
+
+    it('9. Coalescencia simple: debe fusionar inmediatamente bloques libres adyacentes al liberar', () => {
+      const p1 = new Proceso(1, 40, 5);
+      const p2 = new Proceso(2, 60, 5);
+
+      gestor.asignar(p1);
+      gestor.asignar(p2);
+      expect(gestor.getMemoriaLibreTotal()).toBe(0);
+
+      // Liberamos p2 (que estaba al final de la memoria)
+      gestor.liberar(p2);
+      expect(gestor.getMemoriaLibreTotal()).toBe(60);
+
+      // Liberamos p1: ahora p1 (0..40) y p2 (40..100) quedan libres y deben fusionarse en un único bloque de 100
+      gestor.liberar(p1);
+      expect(gestor.getMemoriaLibreTotal()).toBe(100);
+      expect(gestor.getMayorBloqueLibre()).toBe(100);
+
+      const mapa = gestor.obtenerMapaMemoria();
+      expect(mapa.length).toBe(1);
+      expect(mapa[0].inicio).toBe(0);
+      expect(mapa[0].tamano).toBe(100);
+      expect(mapa[0].libre).toBe(true);
+    });
+
+    it('10. Coalescencia en cadena: debe fusionar a izquierda y derecha si un proceso liberado estaba en el medio', () => {
+      // Creamos 3 particiones: p1 (30), p2 (40), p3 (30)
+      const p1 = new Proceso(1, 30, 5);
+      const p2 = new Proceso(2, 40, 5);
+      const p3 = new Proceso(3, 30, 5);
+
+      gestor.asignar(p1);
+      gestor.asignar(p2);
+      gestor.asignar(p3);
+
+      // Liberamos p1 y p3 dejando a p2 en el centro
+      gestor.liberar(p1); // [0..30 libre], [30..70 ocupado (p2)], [70..100 ocupado (p3)]
+      gestor.liberar(p3); // [0..30 libre], [30..70 ocupado (p2)], [70..100 libre]
+
+      expect(gestor.obtenerMapaMemoria().length).toBe(3);
+      expect(gestor.getMayorBloqueLibre()).toBe(30);
+
+      // Al liberar p2, debe ocurrir coalescencia en cadena fusionando los 3 bloques en uno solo de 100
+      gestor.liberar(p2);
+      expect(gestor.getMemoriaLibreTotal()).toBe(100);
+      expect(gestor.getMayorBloqueLibre()).toBe(100);
+
+      const mapa = gestor.obtenerMapaMemoria();
+      expect(mapa.length).toBe(1);
+      expect(mapa[0].inicio).toBe(0);
+      expect(mapa[0].tamano).toBe(100);
+      expect(mapa[0].libre).toBe(true);
+    });
   });
 });
