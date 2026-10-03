@@ -62,4 +62,26 @@ describe('Clase Proceso y Patrón State', () => {
     proceso.descontarBloqueo();
     expect(proceso.getTiempoBloqueoRestante()).toBe(1);
   });
+
+  it('6. En estado TERMINADO debe ser inmutable: no permite salir a ningún otro estado', () => {
+    proceso.cambiarEstado(new EstadoTerminado());
+    expect(proceso.getNombreEstado()).toBe('TERMINADO');
+
+    // Intentamos cambiar a LISTO o a EJECUTANDO: debe ignorarlo
+    proceso.cambiarEstado(new EstadoListo());
+    expect(proceso.getNombreEstado()).toBe('TERMINADO');
+
+    proceso.cambiarEstado(new EstadoEjecutando());
+    expect(proceso.getNombreEstado()).toBe('TERMINADO');
+  });
+
+  it('7. Debe reiniciar el quantum consumido a 0 al solicitarlo', () => {
+    proceso.cambiarEstado(new EstadoEjecutando());
+    proceso.consumirCpu();
+    proceso.consumirCpu();
+    expect(proceso.getQuantumConsumido()).toBe(2);
+
+    proceso.reiniciarQuantum();
+    expect(proceso.getQuantumConsumido()).toBe(0);
+  });
 });
